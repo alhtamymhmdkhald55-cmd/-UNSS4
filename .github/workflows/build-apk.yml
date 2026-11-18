@@ -25,13 +25,21 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Unpack updated project
+        run: |
+          mkdir -p proj
+          unzip -q anis-unss-custom-icon-notification-sounds.zip -d proj
+
       - name: Install dependencies
+        working-directory: proj
         run: npm install
 
       - name: Add Android platform
+        working-directory: proj
         run: npx cap add android
 
       - name: Add app launcher icons and notification sounds
+        working-directory: proj
         run: |
           for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
             mkdir -p "android/app/src/main/res/mipmap-$d"
@@ -41,11 +49,12 @@ jobs:
           cp resources/sounds/*.wav android/app/src/main/res/raw/
 
       - name: Sync Android
+        working-directory: proj
         run: npx cap sync android
 
       - name: Build APK
+        working-directory: proj/android
         run: |
-          cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
@@ -53,5 +62,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: anis-unss-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: proj/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
